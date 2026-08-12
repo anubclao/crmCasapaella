@@ -21,6 +21,13 @@ const credentialsSchema = z.object({
 
 export const authConfig: NextAuthConfig = {
   secret: process.env.AUTH_SECRET,
+  // Hostinger Shared uses LiteSpeed as a reverse proxy in front of the Node
+  // process. The original Host header (e.g. crmcasapaella.tecnowebsupportia.com)
+  // is preserved, but NextAuth v5 (beta) refuses to trust it by default and
+  // throws "UntrustedHost". trustHost: true is the documented workaround for
+  // production deployments behind a trusted reverse proxy.
+  // See: https://errors.authjs.dev#untrustedhost
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
