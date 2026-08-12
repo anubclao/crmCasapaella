@@ -1,0 +1,14 @@
+node_modules/
+.next/
+dist/
+out/
+*.log
+.env
+.env.local
+.env.production
+.env.development
+.git-token
+auth_artifacts/
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts

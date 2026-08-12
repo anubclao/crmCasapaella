@@ -1,0 +1,49 @@
+{
+  "name": "crm-casa-paella",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CRM + WhatsApp automation for Casa Paella (restaurante español premium, Colombia)",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "NODE_ENV=production node server.js",
+    "lint": "next lint",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:strip": "node scripts/strip-breakpoints.mjs",
+    "deploy:prepare": "node scripts/prepare-deploy.mjs"
+  },
+  "dependencies": {
+    "@auth/core": "^0.37.4",
+    "@whiskeysockets/baileys": "^6.7.0",
+    "audio-decode": "^3.11.4",
+    "bcryptjs": "^2.4.3",
+    "drizzle-orm": "^0.36.4",
+    "libphonenumber-js": "^1.11.17",
+    "link-preview-js": "^4.0.4",
+    "mysql2": "^3.11.5",
+    "next": "15.0.3",
+    "next-auth": "5.0.0-beta.25",
+    "node-cron": "^3.0.3",
+    "qrcode": "^1.5.4",
+    "react": "19.0.0-rc-66855b96-20241106",
+    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.10.1",
+    "@types/node-cron": "^3.0.11",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.0.14",
+    "@types/react-dom": "^19.0.6",
+    "autoprefixer": "^10.4.20",
+    "drizzle-kit": "^0.28.1",
+    "eslint": "^9.16.0",
+    "eslint-config-next": "15.0.3",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.16",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: 250 243 224;       /* crema-100 #FAF3E0 */
+  --color-fg: 51 11 13;           /* granate-900 #330B0D */
+  --color-accent: 201 169 97;     /* dorado-500 #C9A961 */
+}
+
+.dark {
+  --color-bg: 26 20 16;           /* carbon-300 #1A1410 */
+  --color-fg: 250 243 224;        /* crema-100 #FAF3E0 */
+}
+
+html, body {
+  background-color: rgb(var(--color-bg));
+  color: rgb(var(--color-fg));
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Subtle warm gradient for the login background */
+.bg-warm-gradient {
+  background: radial-gradient(ellipse at top, #FDF2F2 0%, #FAF3E0 50%, #F0E4C2 100%);
+}
+.dark .bg-warm-gradient {
+  background: radial-gradient(ellipse at top, #330B0D 0%, #1A1410 50%, #0F0B08 100%);
+}
