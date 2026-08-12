@@ -34,7 +34,15 @@ const nextConfig: NextConfig = {
   ],
 
   outputFileTracingIncludes: {
-    "**/*": ["./node_modules/next/dist/compiled/webpack/**/*"],
+    "**/*": [
+      "./node_modules/next/dist/compiled/webpack/**/*",
+      // Force-include server-side modules. Without these, Next.js 15 standalone
+      // build on a clean install (e.g. Hostinger) fails with
+      // "Module not found: Can't resolve '@/server/campaigns'" etc., because
+      // the file tracer only follows imports reachable from the entry chunks.
+      "./src/server/**/*",
+      "./src/lib/**/*",
+    ],
   },
 
   // `sharp` (used by Next Image optimization) tries to import `child_process`
@@ -49,7 +57,7 @@ const nextConfig: NextConfig = {
         mysql2: false,
         bcryptjs: false,
         libsignal: false,
-        "string_decoder": false,
+        string_decoder: false,
         "audio-decode": false,
         "link-preview-js": false,
         "node:module": false,
@@ -68,16 +76,25 @@ const nextConfig: NextConfig = {
       {
         source: "/_next/static/:path*",
         headers: [
-          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+          {
+            key: "Content-Type",
+            value: "application/javascript; charset=utf-8",
+          },
           { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
         ],
       },
       {
         source: "/_next/static/:path*.css",
         headers: [
           { key: "Content-Type", value: "text/css; charset=utf-8" },
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
         ],
       },
       // API routes: disable cache, force JSON
