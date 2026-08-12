@@ -20,6 +20,12 @@ const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
 
+  // Next.js 15 standalone on a clean install can fail with
+  // "Module not found: Can't resolve '@/server/campaigns'".
+  // transpilePackages forces Next.js to treat these in-project directories
+  // as part of the bundle.
+  transpilePackages: ["src/server", "src/lib"],
+
   // Baileys uses native WebSocket bindings (bufferutil/utf-8-validate) that
   // Next.js's webpack bundler cannot resolve. Keep it external so it requires
   // the native module at runtime.
@@ -46,8 +52,20 @@ const nextConfig: NextConfig = {
   },
 
   // `sharp` (used by Next Image optimization) tries to import `child_process`
-  // from a browser-bound chunk. Force webpack to ignore it on the client.
+  // from a browser-bound chunk. Force webpack to ignore native deps on the
+  // client bundle. Do NOT add `audio-decode` here — Baileys imports it
+  // server-side, and `false` there breaks server resolution.
   webpack: (config, { isServer }) => {
+    // Belt-and-suspenders: explicit "@/*" -> "./src/*" alias in webpack, in
+    // addition to the tsconfig.json "paths" entry. Some Next.js 15 builds
+    // miss the tsconfig alias and fail with "@/server/... not found".
+    const path = require("node:path");
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      "@": path.resolve(__dirname, "src"),
+    };
+
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
