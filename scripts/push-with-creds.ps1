@@ -65,6 +65,11 @@ $prevUrl = git remote get-url origin
 
 try {
   git remote set-url origin $authUrl
+
+  # Ensure git identity is configured (common Windows pitfall)
+  if (-not (git config user.name)) { git config user.name "anubclao" }
+  if (-not (git config user.email)) { git config user.email "anubclao@users.noreply.github.com" }
+
   git add -A
   $status = git status --porcelain
   if ($status) {
@@ -73,6 +78,7 @@ try {
     $commitMsg = "deploy: sync local changes"
     if ($args.Count -gt 0 -and $args[0]) { $commitMsg = $args[0] }
     git commit -m "$commitMsg" | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "git commit failed (exit $LASTEXITCODE)" }
   }
   $currentBranch = (git rev-parse --abbrev-ref HEAD).Trim()
   if (-not $currentBranch) { $currentBranch = "main" }
@@ -84,13 +90,15 @@ try {
   Write-Host "Pushing branch '$currentBranch' to origin..." -ForegroundColor Cyan
   if ($hasUpstream) {
     git push origin $currentBranch
+    if ($LASTEXITCODE -ne 0) { throw "git push failed (exit $LASTEXITCODE)" }
   } else {
     Write-Host "  (no upstream yet, using -u)" -ForegroundColor DarkGray
     git push -u origin $currentBranch
+    if ($LASTEXITCODE -ne 0) { throw "git push -u failed (exit $LASTEXITCODE)" }
   }
   Write-Host "OK: Push successful" -ForegroundColor Green
 } catch {
-  Write-Host "ERROR: Push failed: $($_.Exception.Message)" -ForegroundColor Red
+  Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
   exit 1
 } finally {
   # Restore the clean URL (no token) regardless of outcome

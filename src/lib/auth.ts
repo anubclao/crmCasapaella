@@ -40,8 +40,14 @@ export const authConfig: NextAuthConfig = {
 
         const rows = (await query(
           "SELECT id, email, password_hash, name, role FROM users WHERE email = ? LIMIT 1",
-          [email]
-        )) as Array<{ id: number; email: string; password_hash: string; name: string; role: string }>;
+          [email],
+        )) as Array<{
+          id: number;
+          email: string;
+          password_hash: string;
+          name: string;
+          role: string;
+        }>;
 
         const user = rows[0];
         if (!user) return null;
@@ -58,7 +64,7 @@ export const authConfig: NextAuthConfig = {
     }),
   ],
   callbacks: {
-    async jwt({ ghp_xWmgr0JQ3O73Msl8gZijaEP0nz42B12c5Ey, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = (user as { id: string }).id;
         token.role = (user as { role?: string }).role ?? "staff";
