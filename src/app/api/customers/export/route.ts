@@ -6,6 +6,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { query } from "@/lib/db";
 import { toCSV } from "@/lib/csv";
+import { stageInfo } from "@/lib/pipeline";
+import { birthDateISO, type CustomerRow } from "@/server/customers";
+import { ensureCustomerColumns } from "@/server/customer-schema";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,27 +18,21 @@ export async function GET() {
   if (!session?.user) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
-  const rows = await query<Array<{
-    id: number;
-    name: string;
-    phone: string;
-    email: string | null;
-    source: string;
-    total_reservations: number;
-    total_orders: number;
-    total_spent: string;
-    last_activity_at: string | null;
-    created_at: string;
-  }>>(
-    "SELECT id, name, phone, email, source, total_reservations, total_orders, total_spent, last_activity_at, created_at FROM customers ORDER BY id ASC"
-  );
+  await ensureCustomerColumns();
+  const rows = await query<CustomerRow[]>("SELECT * FROM customers ORDER BY id ASC");
 
+  // First columns match the bulk-import template, so this file can be edited
+  // in Excel and uploaded back through "Cargue masivo".
+  const legacy = (r: CustomerRow) => !r.first_name && !r.last_name;
   const csv = toCSV(
     rows.map((r) => ({
       ID: r.id,
-      Nombre: r.name,
-      Teléfono: r.phone,
-      Email: r.email ?? "",
+      Nombres: legacy(r) ? r.name : r.first_name ?? "",
+      Apellidos: r.last_name ?? "",
+      WhatsApp: r.phone,
+      Correo: r.email ?? "",
+      "Fecha de nacimiento": birthDateISO(r.birth_date).split("-").reverse().join("/"),
+      Estado: stageInfo(r.pipeline_stage).label,
       Origen: r.source,
       Reservas: r.total_reservations,
       Pedidos: r.total_orders,

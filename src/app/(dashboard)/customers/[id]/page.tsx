@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getCustomer } from "@/server/customers";
+import { birthDateISO, getCustomer } from "@/server/customers";
+import { getCurrentRoleAsync, roleAtLeast } from "@/lib/authz";
+import { stageInfo } from "@/lib/pipeline";
 import { getTagsForCustomer } from "@/server/customer-tags";
 import { query } from "@/lib/db";
 
@@ -16,6 +18,10 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
   if (!Number.isFinite(customerId)) notFound();
   const customer = await getCustomer(customerId);
   if (!customer) notFound();
+
+  const canEdit = roleAtLeast(await getCurrentRoleAsync(), "manager");
+  const stage = stageInfo(customer.pipeline_stage);
+  const birth = birthDateISO(customer.birth_date);
 
   const [reservations, orders, messages, tags] = await Promise.all([
     query<Array<{ id: number; reservation_date: string; guests: number; status: string; notes: string | null }>>(
@@ -42,9 +48,17 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
       <div className="bg-white rounded-2xl border border-granate-100 shadow-warm p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="font-display text-3xl text-granate-800">{customer.name}</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="font-display text-3xl text-granate-800">{customer.name}</h1>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-medium text-white" style={{ backgroundColor: stage.color }}>
+                {stage.label}
+              </span>
+            </div>
             <div className="text-granate-700 mt-1">{customer.phone}</div>
             {customer.email && <div className="text-granate-700/70 text-sm">{customer.email}</div>}
+            {birth && (
+              <div className="text-granate-700/70 text-sm">🎂 {birth.split("-").reverse().join("/")}</div>
+            )}
             <div className="text-xs text-granate-700/50 mt-2 uppercase tracking-wide">Origen: {customer.source}</div>
             {tags.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1.5">
@@ -67,6 +81,14 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
               {customer.total_orders} pedidos · {customer.total_reservations} reservas
             </div>
             <div className="mt-3 flex gap-2 justify-end">
+              {canEdit && (
+                <Link
+                  href={`/customers/${customer.id}/edit`}
+                  className="text-xs px-3 py-1.5 rounded border border-granate-200 text-granate-700 hover:bg-granate-50"
+                >
+                  ✏️ Editar
+                </Link>
+              )}
               <Link
                 href={`/reservations/new?customer=${customer.id}`}
                 className="text-xs px-3 py-1.5 rounded border border-granate-200 text-granate-700 hover:bg-granate-50"
@@ -83,6 +105,12 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           </div>
         </div>
       </div>
+
+      {customer.notes && (
+        <Section title="Notas">
+          <p className="text-sm text-granate-800 whitespace-pre-wrap">{customer.notes}</p>
+        </Section>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Section title="Reservas">

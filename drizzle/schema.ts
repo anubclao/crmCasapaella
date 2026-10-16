@@ -13,6 +13,7 @@ import {
   int,
   varchar,
   datetime,
+  date,
   decimal,
   json,
   text,
@@ -49,9 +50,12 @@ export const customers = mysqlTable(
   "customers",
   {
     id: int("id").autoincrement().primaryKey(),
-    name: varchar("name", { length: 255 }).notNull(),
+    name: varchar("name", { length: 255 }).notNull(), // full name, kept for templates/search
+    firstName: varchar("first_name", { length: 120 }),
+    lastName: varchar("last_name", { length: 120 }),
     phone: varchar("phone", { length: 30 }).notNull(), // E.164: +57XXXXXXXXXX
     email: varchar("email", { length: 255 }),
+    birthDate: date("birth_date", { mode: "string" }),
     source: mysqlEnum("source", [
       "web_reservation",
       "web_order",
@@ -61,6 +65,8 @@ export const customers = mysqlTable(
     ])
       .notNull()
       .default("manual"),
+    // See src/lib/pipeline.ts for the allowed values.
+    pipelineStage: varchar("pipeline_stage", { length: 20 }).notNull().default("nuevo"),
     totalReservations: int("total_reservations").notNull().default(0),
     totalOrders: int("total_orders").notNull().default(0),
     totalSpent: decimal("total_spent", { precision: 10, scale: 2 })
@@ -75,6 +81,7 @@ export const customers = mysqlTable(
     phoneIdx: uniqueIndex("customers_phone_idx").on(t.phone),
     emailIdx: index("customers_email_idx").on(t.email),
     lastActivityIdx: index("customers_last_activity_idx").on(t.lastActivityAt),
+    pipelineStageIdx: index("customers_pipeline_stage_idx").on(t.pipelineStage),
   }),
 );
 
