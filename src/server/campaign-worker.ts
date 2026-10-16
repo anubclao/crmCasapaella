@@ -14,14 +14,14 @@
 import { query } from "@/lib/db";
 import { processCampaign } from "./campaign-sender";
 import { recalculateAllTags } from "./auto-tagging";
-import cron from "node-cron";
+import cron, { type ScheduledTask } from "node-cron";
 
 const BATCH_SIZE = 10;
 const CRON_EXPR = "*/30 * * * * *"; // every 30 seconds
 const TAG_REFRESH_CRON = "0 3 * * *"; // daily at 3am (server TZ)
 
 const globalForWorker = globalThis as unknown as {
-  __campaignWorker?: { task: cron.ScheduledTask | null; tagTask: cron.ScheduledTask | null };
+  __campaignWorker?: { task: ScheduledTask | null; tagTask: ScheduledTask | null };
 };
 
 async function tick() {
@@ -64,7 +64,7 @@ export function startCampaignWorker() {
 
   // eslint-disable-next-line no-console
   console.log("[campaign-worker] starting (every 30s, batch=10)");
-  const task = cron.schedule(CRON_EXPR, tick, { scheduled: true });
+  const task = cron.schedule(CRON_EXPR, tick);
 
   // Daily auto-tag refresher
   // eslint-disable-next-line no-console
@@ -80,7 +80,7 @@ export function startCampaignWorker() {
       // eslint-disable-next-line no-console
       console.error("[tag-refresher] failed:", e);
     }
-  }, { scheduled: true });
+  });
 
   globalForWorker.__campaignWorker = { task, tagTask };
 

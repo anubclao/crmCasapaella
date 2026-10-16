@@ -84,7 +84,6 @@ function prependEnvLoader() {
   const original = readFileSync(target, "utf8");
   const wrapper = `// ── env loader wrapper (injected by prepare-deploy.mjs) ──
 const fs = require('node:fs');
-const path = require('node:path');
 
 function loadEnvFile(p) {
   if (!fs.existsSync(p)) return;
