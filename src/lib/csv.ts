@@ -36,3 +36,55 @@ function escapeCSV(v: unknown): string {
   }
   return s;
 }
+
+/**
+ * Parse CSV text into rows (RFC 4180: quoted fields, "" escapes, newlines
+ * inside quotes). The delimiter is detected from the header line, because
+ * Excel in Spanish locales saves with ";" instead of ",".
+ */
+export function parseCSV(input: string): string[][] {
+  const text = input.replace(/^﻿/, "");
+  const firstLine = text.slice(0, text.search(/\r?\n|$/));
+  const delimiter = [";", ",", "\t"]
+    .map((d) => ({ d, n: firstLine.split(d).length }))
+    .sort((a, b) => b.n - a.n)[0].d;
+
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === delimiter) {
+      row.push(field);
+      field = "";
+    } else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && text[i + 1] === "\n") i++;
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = "";
+    } else {
+      field += ch;
+    }
+  }
+  if (field !== "" || row.length > 0) {
+    row.push(field);
+    rows.push(row);
+  }
+  return rows;
+}

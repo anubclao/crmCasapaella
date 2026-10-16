@@ -5,6 +5,7 @@
 -- This file is auto-aligned with the TS schema and includes:
 --   • 0000_init.sql
 --   • 0001_users_roles.sql (manager role + is_active)
+--   • 0002_customer_pipeline.sql (first/last name, birth date, pipeline stage)
 --
 -- Run ONCE on a fresh Hostinger MySQL database.
 -- ═══════════════════════════════════════════════════════════════════════
@@ -40,9 +41,13 @@ CREATE TABLE IF NOT EXISTS `users` (
 CREATE TABLE IF NOT EXISTS `customers` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
+  `first_name` VARCHAR(120) NULL,
+  `last_name` VARCHAR(120) NULL,
   `phone` VARCHAR(30) NOT NULL,
   `email` VARCHAR(255) NULL,
+  `birth_date` DATE NULL,
   `source` ENUM('web_reservation', 'web_order', 'manual', 'import', 'whatsapp_inbound') NOT NULL DEFAULT 'manual',
+  `pipeline_stage` VARCHAR(20) NOT NULL DEFAULT 'nuevo',
   `total_reservations` INT NOT NULL DEFAULT 0,
   `total_orders` INT NOT NULL DEFAULT 0,
   `total_spent` DECIMAL(10,2) NOT NULL DEFAULT '0.00',
@@ -53,7 +58,8 @@ CREATE TABLE IF NOT EXISTS `customers` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `customers_phone_idx` (`phone`),
   KEY `customers_email_idx` (`email`),
-  KEY `customers_last_activity_idx` (`last_activity_at`)
+  KEY `customers_last_activity_idx` (`last_activity_at`),
+  KEY `customers_pipeline_stage_idx` (`pipeline_stage`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ── Tags (master list) ──────────────────────────────────────────────────
